@@ -3,12 +3,10 @@ const assert = require('assert');
 require('dotenv').config();
 const email = process.env.EMAIL;
 const password = process.env.PASSWORD;
-console.log(email,password);
 (async () => {
   const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage();
   await page.goto('https://outlook.live.com/owa/');
-  await page.screenshot({ path: 'example.png' });
 
 
   // Click on login button
