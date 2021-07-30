@@ -34,6 +34,15 @@ const password = process.env.PASSWORD;
   await page.waitForSelector(secondLoginSelector);
   await page.click(secondLoginSelector);
 
+  // Time by Time Outlook asks if you want to stay signed in, if thats the case, this clicks no.
+  try{
+    const doNotStaySignedInSelector = "#idBtn_Back"
+    await page.waitForSelector(doNotStaySignedInSelector,{timeout: 3000});
+    await page.click(doNotStaySignedInSelector);
+  }catch{
+    console.log("Outlook didnt ask if I want to stay signed in.")
+  }
+
   // Click on Write email button
   const writeEmailSelector = '[role="region"] > div > div:nth-child(2) > div > div  > button'
   await page.waitForSelector(writeEmailSelector);
@@ -66,19 +75,15 @@ const password = process.env.PASSWORD;
   await page.click(sentMessagesSelector ,{delay: 5000});
 
   // Check if there are any email in the list and if so then check if its the last sent one and then delete all.
-  try{
-    await page.waitForSelector('[data-convid]',{timeout:5000});
-    const sentEmailsSelector = '[data-convid] > div > div > div > div > div:nth-child(2) > div > div'
-    await page.waitForSelector(sentEmailsSelector);
-    const potentialSubject = await page.$eval((sentEmailsSelector), div => div.textContent);
-    
-    assert.strictEqual(potentialSubject,subject);
+  await page.waitForSelector('[data-convid]',{timeout:5000});
+  const sentEmailsSelector = '[data-convid] > div > div > div > div > div:nth-child(2) > div > div'
+  await page.waitForSelector(sentEmailsSelector);
+  const potentialSubject = await page.$eval((sentEmailsSelector), div => div.textContent);
+  
+  assert.strictEqual(potentialSubject,subject);
 
-    // Click on the dump folder button and confirm it
-    await page.click('[role="menuitem"]', {delay: 1000});
-    await page.waitForSelector('#ok-1');
-    await page.click('#ok-1', {delay: 1000});
-  } catch(err){
-    console.log(err)
-  }
+  // Click on the dump folder button and confirm it
+  await page.click('[role="menuitem"]', {delay: 1000});
+  await page.waitForSelector('#ok-1');
+  await page.click('#ok-1', {delay: 1000});
 })();
