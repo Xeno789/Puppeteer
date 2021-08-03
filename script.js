@@ -3,87 +3,103 @@ const assert = require('assert');
 require('dotenv').config();
 const email = process.env.EMAIL;
 const password = process.env.PASSWORD;
+const targetEmail = process.env.TARGET_EMAIL;
 (async () => {
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({
+    headless: false
+  });
   const page = await browser.newPage();
   await page.goto('https://outlook.live.com/owa/');
 
 
   // Click on login button
-  const firstLoginButtonSelector = 'body > header > div > aside > div > nav > ul > li:nth-child(2) > a'
-  await page.waitForSelector(firstLoginButtonSelector);
-  await page.click(firstLoginButtonSelector);
+  const firstLoginButtonXpath = "/html/body/header/div/aside/div/nav/ul/li[2]/a"
+  const firstLoginButton = await page.waitForXPath(firstLoginButtonXpath)
+  await firstLoginButton.click();
 
   // Input email address
-  const emailAddressSelector = '#lightbox > div:nth-child(3) > div > div > div > div.row > div.form-group.col-md-24 > div > input.form-control.ltr_override.input.ext-input.text-box.ext-text-box'
-  await page.waitForSelector(emailAddressSelector);
-  await page.type(emailAddressSelector, email);
+  const emailAddressInputXpath = '//*[@id="lightbox"]/div[3]/div/div/div/div[2]/div[2]/div/input[1]'
+  const emailAddressInput = await page.waitForXPath(emailAddressInputXpath);
+  await emailAddressInput.type(email)
 
   // Click on Next button
-  const nextButtonSelector = "#lightbox > div:nth-child(3) > div > div > div > div.win-button-pin-bottom > div > div > div > div > input"
-  await page.waitForSelector(nextButtonSelector);
-  await page.click(nextButtonSelector)
+  const nextButtonXpath = '//*[@id="lightbox"]/div[3]/div/div/div/div[4]/div/div/div/div/input'
+  const nextButton = await page.waitForXPath(nextButtonXpath);
+  await nextButton.click();
 
   // Input password
-  const passwordSelector = "#lightbox > div:nth-child(3) > div > div.pagination-view.animate.has-identity-banner.slide-in-next > div > div:nth-child(11) > div > div.placeholderContainer > input"
-  await page.waitForSelector(passwordSelector);
-  await page.type(passwordSelector, password);
+  const passwordInputXpath = '//*[@id="lightbox"]/div[3]/div/div[2]/div/div[2]/div/div[2]/input'
+  const passwordInput = await page.waitForXPath(passwordInputXpath);
+  await passwordInput.type(password);
 
   // Click on login button
-  const secondLoginSelector = "#lightbox > div:nth-child(3) > div > div.pagination-view.animate.has-identity-banner.slide-in-next > div > div.position-buttons > div.win-button-pin-bottom > div > div > div > div > input"
-  await page.waitForSelector(secondLoginSelector);
-  await page.click(secondLoginSelector);
+  const secondLoginButtonXpath = '//*[@id="lightbox"]/div[3]/div/div[2]/div/div[3]/div[2]/div/div/div/div/input'
+  const secondLoginButton = await page.waitForXPath(secondLoginButtonXpath);
+  await secondLoginButton.click();
 
   // Time by Time Outlook asks if you want to stay signed in, if thats the case, this clicks no.
-  try{
-    const doNotStaySignedInSelector = "#idBtn_Back"
-    await page.waitForSelector(doNotStaySignedInSelector,{timeout: 3000});
-    await page.click(doNotStaySignedInSelector);
-  }catch{
+  try {
+    const doNotStaySignedInButtonXpath = '/html/body/div/form/div/div/div[1]/div[2]/div/div[2]/div/div[3]/div[2]/div/div/div[1]/input'
+    const doNotStaySignedInButton = await page.waitForXPath(doNotStaySignedInButtonXpath);
+    await doNotStaySignedInButton.click();
+  } catch {
     console.log("Outlook didnt ask if I want to stay signed in.")
   }
 
-  // Click on Write email button
-  const writeEmailSelector = '[role="region"] > div > div:nth-child(2) > div > div  > button'
-  await page.waitForSelector(writeEmailSelector);
-  await page.click(writeEmailSelector);
+  // Click on write email button
+  const writeEmailButtonXpath = '//*[@id="app"]/div/div[2]/div[2]/div[1]/div/div/div[1]/div[1]/div[2]/div/div/button'
+  const writeEmailButton = await page.waitForXPath(writeEmailButtonXpath);
+  await writeEmailButton.click();
 
   // Type in email address of Recipient
-  const recipientSelector = '[role="complementary"]:nth-child(2) > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div > input';
-  await page.waitForSelector(recipientSelector);
-  await page.type(recipientSelector, 'echorus78@gmail.com');
-  await page.keyboard.press("Enter");
+  const recipientInputXpath = '//*[@id="ReadingPaneContainerId"]/div/div/div/div[1]/div[1]/div[1]/div/div[1]/div/div[1]/div/div/div[2]/div[2]/input';
+  const recipientInput = await page.waitForXPath(recipientInputXpath);
+  await recipientInput.type(targetEmail);
+  await page.keyboard.press("Enter")
 
   // Type in subject
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   var subject = ""
-  for (var i=0; i < 5;i++){
-      subject += possible.charAt(Math.floor(Math.random() * possible.length));
+  for (var i = 0; i < 5; i++) {
+    subject += possible.charAt(Math.floor(Math.random() * possible.length));
   }
-  await page.waitForSelector(".ms-TextField-field");
-  await page.type(".ms-TextField-field",subject);
-  
-  // Press ctrl+enter to send email.
-  await page.keyboard.down("Control");
-  await page.keyboard.press("Enter");
-  await page.keyboard.up("Control");
+  const subjectInputXpath = '//*[@id="ReadingPaneContainerId"]/div/div/div/div[1]/div[1]/div[3]/div[2]/div/div/div/input';
+  const subjectInput = await page.waitForXPath(subjectInputXpath);
+  await subjectInput.type(subject);
+
+  // Press send email button
+  const sendMailButtonXpath = '//*[@id="ReadingPaneContainerId"]/div/div/div/div[1]/div[3]/div[2]/div[1]/div/span/button[1]'
+  const sendMailButton = await page.waitForXPath(sendMailButtonXpath);
+  await sendMailButton.click();
 
   // Click on Sent messages tab.
-  const sentMessagesSelector = '[role="tree"]:nth-child(3) > div:nth-child(5)'
-  await page.waitForSelector(sentMessagesSelector);
+  const sentMessagesButtonXpath = '//*[@id="app"]/div/div[2]/div[2]/div[1]/div/div/div[1]/div[2]/div/div[1]/div/div[2]/div[5]/div/span[1]'
+  const sentMessagesButton = await page.waitForXPath(sentMessagesButtonXpath);
   // Delay of 5000ms should solve the problem of clicking on sent mails before outlook actually sends the mail.
-  await page.click(sentMessagesSelector ,{delay: 5000});
+  await sentMessagesButton.click({
+    delay: 5000
+  });
 
   // Check if there are any email in the list and if so then check if its the last sent one and then delete all.
-  await page.waitForSelector('[data-convid]',{timeout:5000});
-  const sentEmailsSelector = '[data-convid] > div > div > div > div > div:nth-child(2) > div > div'
-  await page.waitForSelector(sentEmailsSelector);
-  const potentialSubject = await page.$eval((sentEmailsSelector), div => div.textContent);
-  
-  assert.strictEqual(potentialSubject,subject);
+
+  const lastSentEmailSubjectXpath = '//*[@id="app"]/div/div[2]/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div[2]/div/div/div/div/div/div[2]/div/div/div/div/div[2]/div/div[1]/span'
+  const lastSentEmailSubject = await page.waitForXPath(lastSentEmailSubjectXpath, {
+    timeout: 5000
+  });
+  const potentialSubject = await page.evaluate(async subject => await subject.innerText, lastSentEmailSubject);
+
+  assert.strictEqual(potentialSubject, subject);
 
   // Click on the dump folder button and confirm it
-  await page.click('[role="menuitem"]', {delay: 1000});
-  await page.waitForSelector('#ok-1');
-  await page.click('#ok-1', {delay: 1000});
+  const dumpFolderButtonXpath = '//*[@id="app"]/div/div[2]/div[2]/div[1]/div/div/div[3]/div[1]/div/div/div/div/div/div[1]/div[1]/button';
+  const dumpFolderButton = await page.waitForXPath(dumpFolderButtonXpath)
+  await dumpFolderButton.click({
+    delay: 1000
+  });
+
+  const confirmButtonXpath = '/html/body/div[12]/div/div/div/div[2]/div[2]/div/div[2]/div[2]/div/span[1]/button';
+  const confirmButton = await page.waitForXPath(confirmButtonXpath)
+  await confirmButton.click({
+    delay: 1000
+  });
 })();
